@@ -1,0 +1,73 @@
+# /** skFanta -- Intagrated "Drugs Effect" */
+
+/**
+ 
+ Author » EDEN
+ Song » Drugs 
+ Album » I think you think too much of me
+ Year » August 19 2016
+
+ */
+
+import Skript
+import SkQuery
+import Bukkit import Spigot-API
+import DevClientAPI
+from skFanta import modules.drugs
+from skFanta extends drugs.* import='*'
+
+options:
+	a: &c&lFANTASIA &8»
+
+	title: &c&lFantasia
+	subtitle: &fMusical Event starting ?
+
+on command /drugs [<text>]:
+	permissionDefault: false
+	permission: $1.drugs
+	permission message: $2.?default(rank="&5&lFANTASIA")
+	groupAccept: acceptVariable(:rank.FANTASIA | player="iMPDevMC")
+	usage: customMessage("{@p} &cInvalid Syntax")
+	fantaLocation: Location.ifPos(x=-1, y=0, z=-1).toInt --> return Location.defaultPos() |<-- null
+	trigger: 
+
+		set {_tempPos} to position of player ->
+			instance = {_tempPos}.getValue &> format(value[1]='X', value[2]='Y', value[3]='Z'):
+
+		set {_player} to username of the player
+		fanta write log "[%fantaNow%] (%{_player}%) Started drug effect" at resource location "logs/skFanta/drugs.log" for unlimited amount of time
+
+		/** Init */
+
+		function(InitEvent -> onlinePlayer){
+			start loop-player with id "event.allPlayers" ->
+				set {_players} to all online players data 
+
+				set {_client.%looped%} to player's clientName
+
+				if {_client.%looped%} is DevClientAPI.getClientName(client) && import Spigot-API(api) { # 0.4
+					client.sendNotification(NotificationType.Event, "Musical Event Starting?")
+					client.loadMusic(DevClientAPI.loadMusic(Music.Drugs, "EDEN", "I think you think too much of me"))
+				} else if {_client.%looped%} is DevClientAPI.getClientName {
+					if {_client.%looped%} is DevClientAPI.getClientName(Version.1) { # 0.1
+						api.sendTitle({@title}, {@subtitle})
+						client.loadMusic(DevClientAPI.loadMusic(Music.Drugs, "EDEN", "I think you think too much of me"))
+					} else if {_client.%looped%} is DevClientAPI.getClientName(Version.2) { # 0.2
+						api.sendTitle({@title}, {@subtitle})
+						client.loadMusic(DevClientAPI.loadMusic(Music.Drugs, "EDEN", "I think you think too much of me"))
+					} if {_client.%looped%} is DevClientAPI.getClientName(Version.3) { # 0.3
+						api.sendTitle({@title}, {@subtitle})
+						client.loadMusic(DevClientAPI.loadMusic(Music.Drugs, "EDEN", "I think you think too much of me"))
+					}
+					
+					else {
+						api.setKicked(true, "&fPlease use Fantasia's client!")
+					}
+					stop loop with id "event.AllPlayers"
+				}
+				loop has stopped -> 
+					start loop
+					set set {_player.%looped%} to player's clientName
+					DevClientAPI.sendDBData(Achievements.drugs = true) for {_player.%looped%}
+				award all online players with drugs with message ("Achievement Unlocked", "Thanks " + api.getPlayer.getUsername)
+		}
