@@ -13,16 +13,18 @@ import Skript
 import SkQuery
 import Bukkit import Spigot-API
 import DevClientAPI
+from DevClientAPI import DevClient, ClientAPI(capi), OldVersionsAPI(Versions)
 from skFanta import modules.drugs
 from skFanta extends drugs.* import='*'
 
 options:
 	a: &c&lFANTASIA &8»
+	b: &c&lFANTASIA
 
 	title: &c&lFantasia
 	subtitle: &fMusical Event starting ?
 
-on command /drugs [<text>]:
+register command /drugs with args [<text>]:
 	permissionDefault: false
 	permission: $1.drugs
 	permission message: $2.?default(rank="&5&lFANTASIA")
@@ -31,11 +33,23 @@ on command /drugs [<text>]:
 	fantaLocation: Location.ifPos(x=-1, y=0, z=-1).toInt --> return Location.defaultPos() |<-- null
 	trigger: 
 
+	# Song preview :
+
+	/**
+	  
+	  First Drop » 00:58 seconds
+	  Second Drop » 1:51 seconds
+	  Sky is on fire » 3:15 seconds
+	  Third Drop » 4:08 seconds 
+	  Calm » 5:01 seconds
+
+	 */
+
 		set {_tempPos} to position of player ->
 			instance = {_tempPos}.getValue &> format(value[1]='X', value[2]='Y', value[3]='Z'):
 
 		set {_player} to username of the player
-		fanta write log "[%fantaNow%] (%{_player}%) Started drug effect" at resource location "logs/skFanta/drugs.log" for unlimited amount of time
+		fanta write log "[%fantaNow%] (%{_player}%) Started drugs event" at resource location "logs/skFanta/drugs.log" for unlimited amount of time
 
 		/** Init */
 
@@ -59,7 +73,6 @@ on command /drugs [<text>]:
 						api.sendTitle({@title}, {@subtitle})
 						client.loadMusic(DevClientAPI.loadMusic(Music.Drugs, "EDEN", "I think you think too much of me"))
 					}
-					
 					else {
 						api.setKicked(true, "&fPlease use Fantasia's client!")
 					}
@@ -69,5 +82,39 @@ on command /drugs [<text>]:
 					start loop
 					set set {_player.%looped%} to player's clientName
 					DevClientAPI.sendDBData(Achievements.drugs = true) for {_player.%looped%}
-				award all online players with drugs with message ("Achievement Unlocked", "Thanks " + api.getPlayer.getUsername)
+				prepare to award all online players with drugs with message ("Achievement Unlocked", "Thanks " + api.getPlayer.getUsername "!") with id "drugs.achievement"
+		}
+
+		/** Starting */
+
+		function(StartEvent -> WorldName, onlinePlayers, Location, Achievement){
+			start loop-player with id "event.worldName" ->
+				set {_world} to the current world name of sender
+
+			set function's achievement to null
+			set function's onlinePlayers to {_player.%looped%} from function "InitEvent"
+			if {_player.%looped%} is running client DevClientAPI.getClientName(client) || DevClientAPI.getClientName(Versions.1 || Version.2 || Version.3){
+				client is client
+				client.sendNotification(NotificationType.Event, "Event is now starting, /event to join!")
+				stop 
+				!client is client ^> DevClientAPI.getAPI ->
+					send "{@a} &fAn Event is starting ! /event to join !" to event-player
+					send event-player title and subtitle and actionbar ("{@b}", "&fAn event is starting ?", "&fJoin with &6/event &f&o!")
+			}
+			client is verified to be client ->
+				Events.getDrugs();
+				if null !true (next^) ->
+					else (fail^)
+			Effects.startDrugs(); --> setLineName(next^)
+			
+			--> setLineName(fail^)
+			from Events -> 
+				Event.forceStop();
+		}
+		miniFunction(Fire ->){
+			from Events -> 
+				Events.drugs.setFire(true);
+				wait 27.5 seconds
+				Events.drugs.setFire(false) -->
+					for {_player.%looped%}
 		}
